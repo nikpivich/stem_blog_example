@@ -1,0 +1,62 @@
+{% extends 'front/base.html' %}
+
+{% block content %}
+
+    {% if delete %}
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+            Удалить
+        </button>
+    {% endif %}
+    <!-- В теге <form> указывая метод "POST" мы перенаправляем введеные данные в функцию def crate_news  -->
+    <form method="post">
+
+        <!-- csrf_token служит для обеспечения сохранения введенных нами данных, без него шаблон выдаст ошибку   -->
+        {% csrf_token %}
+
+        <!-- Проверяем на наличие ошибки, если да, выводим ошибку -->
+        {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <!-- Вводим title новости и сохраняем ее в переменну функции crate_news-->
+        <div class="form-group">
+            <label for="title" class="form-label">Новость</label>
+            <input type="text" name="title" class="form-control" placeholder="В чем суть новости" value="{{ title }}">
+        </div>
+
+        <!-- Вводим content новости и сохраняем ее в переменну функции crate_news-->
+        <div class="form-group">
+            <label for="content" class="form-label">Содержание новости</label>
+            <textarea name="content" class="form-control" rows="3">{{ content }}</textarea>
+        </div>
+
+        <br>
+        <!-- Кнопка для отправления формы -->
+        <div class="form-group">
+            <button type="submit" class="btn btn-dark">Отправить</button>
+        </div>
+
+    </form>
+    {% if delete %}
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">Удаление Новости</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                    </div>
+                    <div class="modal-body">
+                        Вы точно хотите удалить эту новость ?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Нет</button>
+                        <form method="post" action="{% url 'delete' news_id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

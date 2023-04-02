@@ -1,0 +1,28 @@
+{% extends 'front/base.html' %}
+
+{% block content %}
+    <h1>{{ user.user.username }}</h1>
+    {% load humanize %}
+    <hr>
+    <div class="row row-cols-3 row-col-md-3 g-4">
+    <!-- С помощью цикла достоем данные из news-->
+        {% for newss in news %}
+        <div class="col">
+        <!-- Выводим в виде карточки данные -->
+            <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                    <h5 class="card-title">{{ newss.title}}</h5>
+
+                    <h6 class="card-subtitle mb-2 text-muted">{{ newss.date}}</h6>
+{#                    <p class="card-text">{{ newss.content }}</p>#}
+                    <a href="{% url 'views_news_id' newss.id %}" class="card-link">Посмотреть</a>
+                    {% if user == newss.user %}
+                    <a href="{% url 'update' newss.id  %}" class="card-link">Изменить</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://bootstrap-4.ru/docs/5.2/assets/css/docs.css" rel="stylesheet">
+    <title>Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
+  </head>
+  <body class="p-3 m-0 border-0 bd-example">
+<main class="form-signin w-100 m-auto">
+{% block content %}
+    <form class="row g-3" method="post">
+        {% csrf_token %}
+      <div class="col-md-6">
+        <label for="user" class="form-label">Username</label>
+        <input type="text" name="username" class="form-control" id="inputUserName">
+      </div>
+      <div class="col-md-6">
+        <label for="password" class="form-label">Пароль</label>
+        <input type="password" name="password" class="form-control" id="inputPassword">
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary">Войти в систему</button>
+      </div>
+    </form>
+{% endblock %}
+</main>
+  </body>
+</html>

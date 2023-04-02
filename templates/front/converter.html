@@ -1,0 +1,79 @@
+<!-- Наследуем эту страницу от базового -->
+{% extends 'front/base.html' %}
+
+<!-- Все что в это блоке переносится на базовый шаблон -->
+{% block content %}
+
+    <div class="container">
+        <div class="row">
+            <div class="card box-shadow m-2 form-wrap">
+                <div class="card-header text-center">
+                    <h3>Конвертер валют </h3>
+                </div>
+
+                <!-- В теге <form> указывая метод "POST" мы перенаправляем введеные данные в функцию def converter  -->
+                <form id="form" class="p-3" action='' method="POST">
+
+                    <!-- csrf_token служит для обеспечения сохранения введенных нами данных, без него шаблон выдаст ошибку   -->
+                    {% csrf_token %}
+
+                    <!-- Создаем блок для конвертера-->
+                    <div class="form-row">
+
+                        <!-- Вводим чикло и проверяем -->
+                        <div class="form-group col-md-4 mb-0">
+                            <label for="amount">Сумма*</label>
+                            <input id='amount' type="number" class="form-control" placeholder="Введите число" {% if from_amount %} value="{{ from_amount }}" {% endif %} name="from-amount">
+                        </div>
+
+                        <!-- Создаем блок выбора валюты (красивый выпадающий список с названиями валют) -->
+                        <div class="form-group col-md-4 mb-0">
+                            <label for="from_curr">Отдаем*</label>
+
+                            <!--(красивый выпадающий список с названиями валют) -->
+                            <select class="form-control" id="from_curr" name="from-curr" value="{{ from_curr }}">
+
+                                <!-- Испольхуем цикл for для вывода всех валют  -->
+                                {% for curr in currencies %}
+                                    <option value="{{ curr }}" {% if from_curr == curr %}selected{% endif %}>{{ curr }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+                        <div class="form-group col-md-4 mb-0">
+                            <label for="to-curr">Получаем*</label>
+                            <select class="form-control" id="to-curr" name="to-curr" value="{{ to_curr }}">
+                                {% for curr in currencies %}
+                                    <option value="{{ curr }}" {% if to_curr == curr %}selected{% endif %}>{{ curr }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                    </div>
+                    <!-- Обычная линия разделения -->
+                    <hr>
+
+                    <!-- Проверяем были ли введены данные, если да то выводим результат -->
+                    {% if converted_amount %}
+                        <div class="card col-6 p-0 m-auto">
+                            <div class="card-header text-center">
+                                    <h5>Отдаем <b>{{ from_curr }}</b> Получаем
+                                        <b>{{ to_curr }}</b></h5>
+                            </div>
+                            <div class="card-body">
+                                {{ converted_amount }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                <!-- Кнопака расчета валют  -->
+                    <div class="submit-btn mt-3">
+                        <button type="submit" class="btn btn-primary">Рассчитать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
