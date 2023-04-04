@@ -6,7 +6,7 @@
         <div class="card-body">
             <h1>{{ news.title }}</h1>
             <p>{{ news.date }}</p>
-            <span class="badge text-bg-info">{{ author }}</span>
+            <a href="{% url 'profile' author %}"><span class="badge text-bg-info">{{ author }}</span></a>
             <h2>{{ news.content | linebreaks }}</h2>
             <h4>{{ news.id }}</h4>
         </div>

@@ -31,6 +31,19 @@ def faker_create_user(request):
         )
     return redirect('/')
 
+def faker_create_news(request):
+    f = Faker()
+    users = User.objects.all()
+    for i in users:
+        for j in range(10):
+            models.News.objects.create(
+                title=f.sentence(nb_words=5),
+                content=f.sentence(nb_words=100),
+                date=f.date_time_between(),
+                user=i
+            )
+    return redirect('/')
+
 
 
 # функция приветсвия
@@ -47,6 +60,7 @@ def welcoming(request):
 
     # Возвращаем в заданный шаблон('front/home.html') и обеденяем с заданным словарем(context=context)
     return render(request=request, template_name='front/home.html', context=context)
+
 
 
 # Напишем функцию для работы конвертера
@@ -127,7 +141,6 @@ def crate_news(request):
 
     # Если в шаблона ввели данные, перехватывем и сохраняем в переменные
     elif request.method == 'POST':
-        print(request.POST)
         title = request.POST.get('title') or ''
         content = request.POST.get('content') or ''
 
@@ -199,9 +212,16 @@ def news_delete(request, news_id):
 
 
 def profile(request, user_name):
+    print(request.user)
     try:
         user_profile = models.Profile.objects.get(user__username=user_name)
         news_user = models.News.objects.filter(user__username=user_name)
-        return render(request=request, template_name='registration/profile.html', context={'user': user_profile, 'news':news_user })
+
+        return render(
+            request=request,
+            template_name='registration/profile.html',
+            context={'user': user_profile, 'news':news_user },
+
+        )
     except (User.DoesNotExist, models.Profile.DoesNotExist):
         return redirect('home')

@@ -19,5 +19,8 @@ urlpatterns = [
     path('delete/<int:news_id>', views.news_delete, name='delete'),
     path('profile/<user_name>', views.profile, name='profile'),
 
-    path('fake/users',views.faker_create_user)
+
+    # Для FAKE
+    path('fake/users', views.faker_create_user),
+    path('fake/news', views.faker_create_news)
 ]

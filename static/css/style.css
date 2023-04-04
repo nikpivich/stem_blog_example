@@ -1,4 +1,10 @@
 body {
+     width: 100%;
+    height: 100vh;
+    background: bisque;
     background-image: url('../img/luna.jpg');
-
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
 }
