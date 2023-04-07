@@ -158,7 +158,8 @@ def crate_news(request):
 
             # Текст указывающий на ошибку
             error = 'Укажите все поля'
-            return render(request=request, template_name='front/create_news.html', context={'title': title, 'content': content, 'error': error})
+            return render(request=request, template_name='front/create_news.html',
+                          context={'title': title, 'content': content, 'error': error})
 
 
 def update_news(request, news_id):
