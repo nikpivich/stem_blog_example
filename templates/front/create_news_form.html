@@ -1,0 +1,12 @@
+{% extends 'front/base.html' %}
+
+{% block content %}
+{% load static %}
+<script type="text/javascript" src="{% static "ckeditor/ckeditor-init.js" %}"></script>
+<script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="OK">
+    </form>
+{% endblock %}

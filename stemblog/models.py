@@ -3,11 +3,13 @@ from django.contrib.auth.models import User
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from faker import Faker
+from ckeditor.fields import RichTextField
 
 class News(models.Model):
     title = models.CharField(max_length=15)
-    content = models.TextField()
+    content = RichTextField()
     date = models.DateTimeField(auto_now=True)
+    image = models.ImageField(upload_to='news_img/%Y/%m/%d/', null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):

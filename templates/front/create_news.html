@@ -1,6 +1,9 @@
 {% extends 'front/base.html' %}
 
 {% block content %}
+{% load static %}
+<script type="text/javascript" src="{% static "ckeditor/ckeditor-init.js" %}"></script>
+<script type="text/javascript" src="{% static "ckeditor/ckeditor/ckeditor.js" %}"></script>
 
     {% if delete %}
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
@@ -8,7 +11,7 @@
         </button>
     {% endif %}
     <!-- В теге <form> указывая метод "POST" мы перенаправляем введеные данные в функцию def crate_news  -->
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
 
         <!-- csrf_token служит для обеспечения сохранения введенных нами данных, без него шаблон выдаст ошибку   -->
         {% csrf_token %}
@@ -22,6 +25,11 @@
         <div class="form-group">
             <label for="title" class="form-label">Новость</label>
             <input type="text" name="title" class="form-control" placeholder="В чем суть новости" value="{{ title }}">
+        </div>
+
+{#        Изображение#}
+        <div class="form-group" >
+            <input type="file" name="image">
         </div>
 
         <!-- Вводим content новости и сохраняем ее в переменну функции crate_news-->

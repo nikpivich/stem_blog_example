@@ -10,13 +10,16 @@
     def all_news(request): Вы водит все новости
     def crate_news(request): Принимает введенные значения и сохраняет их в базу данных
 """
+import datetime
+
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.http import HttpResponseNotAllowed, HttpResponseNotFound
 from stemblog import models
 import requests
 from faker import Faker
-# from django.db.models import Q
+from django.db.models import Q
+from .forms import NewsForm
 
 
 def faker_create_user(request):
@@ -134,21 +137,29 @@ def all_news(request):
 
 #Создаем функцию создания новости и сохранение данных в базу данных с шаблона
 def crate_news(request):
-
+    user_form = NewsForm()
     # Проверяем методы обращения к серверу
     if request.method == 'GET':
-        return render(request=request, template_name='front/create_news.html')
+        return render(request=request, template_name='front/create_news_form.html', context={'form': user_form})
 
     # Если в шаблона ввели данные, перехватывем и сохраняем в переменные
     elif request.method == 'POST':
-        title = request.POST.get('title') or ''
-        content = request.POST.get('content') or ''
+        # title = request.POST.get('title') or ''
+        # content = request.POST.get('content') or ''
+
+        user_form = NewsForm(request.POST, request.FILES)
 
         # Проверяем все ли поля заполнены и сохраняем введеные значения в базу данных
-        if title and content:
+        if user_form.is_valid():
 
             # Обращаемся к классу и и сохраняем их по значению
-            models.News(title=title, content=content, user=request.user).save()
+            models.News.objects.create(
+                        title=user_form.cleaned_data['title'],
+                        content=user_form.cleaned_data['content'],
+                        image=user_form.cleaned_data['image'],
+                        user=User.objects.get(username=request.user.username),
+                        date=datetime.datetime.now()
+                        )
 
             # Возвращаем главную страницу
             return redirect('/')
@@ -156,10 +167,8 @@ def crate_news(request):
         # Если данные введены не все, то выводим ошибку и возвращаем шаблон
         else:
 
-            # Текст указывающий на ошибку
-            error = 'Укажите все поля'
-            return render(request=request, template_name='front/create_news.html',
-                          context={'title': title, 'content': content, 'error': error})
+            return render(request=request, template_name='front/create_news_form.html',
+                          context={'form': user_form})
 
 
 def update_news(request, news_id):
