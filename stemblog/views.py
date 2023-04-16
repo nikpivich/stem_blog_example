@@ -19,8 +19,9 @@ from stemblog import models
 import requests
 from faker import Faker
 from django.db.models import Q
-from .forms import NewsForm
-
+from .forms import NewsForm, NewsModelForms
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.list import ListView
 
 def faker_create_user(request):
     f = Faker('ru_RU')
@@ -136,8 +137,8 @@ def all_news(request):
 
 
 #Создаем функцию создания новости и сохранение данных в базу данных с шаблона
-def crate_news(request):
-    user_form = NewsForm()
+def create_news(request):
+    user_form = NewsModelForms()
     # Проверяем методы обращения к серверу
     if request.method == 'GET':
         return render(request=request, template_name='front/create_news_form.html', context={'form': user_form})
@@ -235,3 +236,40 @@ def profile(request, user_name):
         )
     except (User.DoesNotExist, models.Profile.DoesNotExist):
         return redirect('home')
+
+
+class NewsCreate(CreateView):
+    models = models.News
+    form_class = NewsModelForms
+    success_url = '/news/{id}'
+    template_name = 'front/create_news_form.html'
+
+    def form_valid(self, form):
+        news_user= super().form_valid(form)
+        self.object.user = self.request.user
+        self.object.save()
+        return news_user
+
+
+class NewsUpdate(UpdateView):
+    model = models.News
+    form_class = NewsModelForms
+    success_url = '/news/{id}'
+    template_name = 'front/create_news_form.html'
+
+
+class NewsDelete(DeleteView):
+        models = models.News
+        success_url = '/'
+
+
+class NewsShow(ListView):
+    model = models.News
+    paginate_by = 10
+    template_name = 'front/news.html'
+    context_object_name = 'news'
+    ordering = ('-date',)
+
+
+
+

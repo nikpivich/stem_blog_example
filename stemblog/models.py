@@ -1,3 +1,5 @@
+import os
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.dispatch import receiver
@@ -14,6 +16,25 @@ class News(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return f'/news/{self.pk}'
+
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        try:
+            img = News.objects.get(id=self.id).image
+            if img and not self.image or img and self.image.path != img.path:
+                # Удаляем предыдущий файл картинки
+                print('Удаляем старую картинку')
+                if os.path.exists(img.path):
+                    os.remove(img.path)
+        except News.DoesNotExist:
+            pass
+
+        return super().save(
+            force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields
+        )
 
 
 class Profile(models.Model):
