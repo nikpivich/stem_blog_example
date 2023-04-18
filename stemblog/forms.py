@@ -1,8 +1,7 @@
 from django import forms
 from ckeditor.widgets import CKEditorWidget
-
 from .models import News
-
+from stemblog.serializers import NewsSerializer
 
 class NewsForm(forms.Form):
     title = forms.CharField(label='Заголовок', required=True, max_length=100)

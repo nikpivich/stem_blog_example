@@ -15,6 +15,8 @@ import datetime
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.http import HttpResponseNotAllowed, HttpResponseNotFound
+from rest_framework import status
+
 from stemblog import models
 import requests
 from faker import Faker
@@ -22,6 +24,13 @@ from django.db.models import Q
 from .forms import NewsForm, NewsModelForms
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
+
+from django.http import JsonResponse
+from rest_framework.parsers import JSONParser
+from .serializers import NewsSerializer, NewsModelSerializer
+from rest_framework.decorators import api_view
+from rest_framework.views import Response
+
 
 def faker_create_user(request):
     f = Faker('ru_RU')
@@ -259,8 +268,8 @@ class NewsUpdate(UpdateView):
 
 
 class NewsDelete(DeleteView):
-        models = models.News
-        success_url = '/'
+    models = models.News
+    success_url = '/'
 
 
 class NewsShow(ListView):
@@ -270,6 +279,69 @@ class NewsShow(ListView):
     context_object_name = 'news'
     ordering = ('-date',)
 
+    def get_queryset(self):
+        if self.request.GET.get('d'):
+            date = datetime.datetime.strptime(self.request.GET['d'], '%Y-%m-%d')
+            date_to = date + datetime.timedelta(days=1)
+            date_query = (Q(date__gte=date) & Q(date__lt=date_to))
+        else:
+            date_query = Q()
 
+        if self.request.GET.get('s'):
+            s = self.request.GET['s']
+            q1 = models.News.objects.filter(
+                date_query & Q(title__contains=s) & ~Q(content__contains=s)
+            ).order_by('-date')
+            q2 = models.News.objects.filter(
+                date_query & ~Q(title__contains=s) & Q(content__contains=s)
+            ).order_by('-date')
+
+            q = q1 | q2
+
+        else:
+            q = models.News.objects.filter(date_query).order_by('-date').all().values('id', 'title', 'user', 'date')
+            print(q.query)
+        return q
+
+
+@api_view(['GET', 'POST'])
+def news_api(request):
+    if request.method == 'GET':
+        news_ = models.News.objects.all()[:100]
+        serializer = NewsModelSerializer(news_, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST' and not request.user.is_anonymous:
+        serializer = NewsModelSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return Response({'detail': 'not authorized'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+@api_view(['GET', 'PUT', 'DELETE'])
+def news_api_up_del(request, pk):
+
+    try:
+        news = models.News.objects.get(id=pk)
+    except models.News.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        ser = NewsModelSerializer(news)
+        return Response(ser.data)
+
+    elif request.method == 'PUT':
+        ser = NewsModelSerializer(news, data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    else:
+        news.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 

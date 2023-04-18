@@ -1,5 +1,6 @@
 {% extends 'front/base.html' %}
 
+
 {% block content %}
     {% load humanize %}
 <form method="get">
@@ -31,17 +32,78 @@
 
 
 {% block footer %}
-<nav aria-label="Пример навигации по страницам">
-  <ul class="pagination justify-content-center">
-    <li class="page-item disabled">
-      <a class="page-link">Предыдущая</a>
-    </li>
-    <li class="page-item"><a class="page-link" href="#">1</a></li>
-    <li class="page-item"><a class="page-link" href="#">2</a></li>
-    <li class="page-item"><a class="page-link" href="#">3</a></li>
-    <li class="page-item">
-      <a class="page-link" href="#">Следующая</a>
-    </li>
-  </ul>
-</nav>
+{% load l10n %}
+<footer class="text-center text-lg-start text-muted">
+    <div class="container p-4">
+
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="...">
+          <ul class="pagination justify-content-center">
+
+          {% localize off %}
+            {# Первая страница #}
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="{% url 'news' %}?p=1&s={{ search_str }}">1 << </a>
+            </li>
+            {% endif %}
+
+            <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
+              <a class="page-link"
+                 {% if page_obj.has_previous %}
+                 href="{% url 'news' %}?p={{ page_obj.previous_page_number }}&s={{ search_str }}"
+                 {% endif %}
+              >Предыдущая</a>
+            </li>
+
+            {# Предыдущая страница #}
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="{% url 'news' %}?p={{ page_obj.previous_page_number }}&s={{ search_str }}">{{ page_obj.previous_page_number }}</a>
+                </li>
+            {% endif %}
+
+
+            {# Текущая страница #}
+            <li class="page-item active" aria-current="page">
+              <a class="page-link">{{ page_obj.number }}</a>
+            </li>
+
+
+            {# Следующая страница #}
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{% url 'news' %}?p={{ page_obj.next_page_number }}&s={{ search_str }}">{{ page_obj.next_page_number }}</a>
+            </li>
+            {% endif %}
+
+            {# Запасная страница #}
+            {% if page_obj.number|add:'1' < paginator.num_pages %}
+            <li class="page-item">
+                <a class="page-link" href="{% url 'news' %}?p={{ page_obj.number|add:'2' }}&s={{ search_str }}">{{ page_obj.number|add:'2' }}</a>
+            </li>
+            {% endif %}
+
+            {# Следующая страница #}
+            <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
+              <a class="page-link"
+                 {% if page_obj.has_next %}
+                 href="{% url 'news' %}?p={{ page_obj.next_page_number }}&s={{ search_str }}"
+                 {% endif %}
+              >Следующая</a>
+            </li>
+
+            {# Последняя страница #}
+            {% if page_obj.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="{% url 'news' %}?p={{ paginator.num_pages }}&s={{ search_str }}"> >> {{ paginator.num_pages }}</a>
+            </li>
+            {% endif %}
+          {% endlocalize %}
+          </ul>
+        </nav>
+    {% endif %}
+    </div>
+</footer>
+
 {% endblock %}
