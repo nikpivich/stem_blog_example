@@ -10,7 +10,7 @@ from stemblog import views      # Импортируем наши предста
 
 urlpatterns = [
     path('', views.welcoming, name='home'),             # ВЫзываем функцию привествия
-    path('news/', views.NewsShow.as_view(), name='news'),         # Вызываем функцию вывода новостей новостей
+    path('news/', views.NewsShow.as_view(), name='news'),         # Вызываем функцию вывода новостей
     path('converter/', views.converter, name='convert'),# Вызываем функцию конвертера валют
     # path('create/', views.create_news, name='create_news'),   # Вызываем функцию создания новости
     # Вызываем функцию показа поста и указываем путь в адресной строке по его id
@@ -28,5 +28,11 @@ urlpatterns = [
 
     #api
     path('api', views.news_api),
-    path('api/<int:pk>', views.news_api_up_del)
+    path('api/<int:pk>', views.news_api_up_del),
+
+    path('api/v2/', views.NewsViewAPI.as_view()),
+    path('api/v2/<int:pk>', views.NewsViewAPI.as_view()),
+
+    path('api/v3/', views.NewsListCreateAPIView.as_view()),
+    path('api/v3/<int:pk>', views.NewsListCreateAPIView.as_view()),
 ]

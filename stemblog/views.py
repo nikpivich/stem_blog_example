@@ -14,8 +14,8 @@ import datetime
 
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
-from django.http import HttpResponseNotAllowed, HttpResponseNotFound
-from rest_framework import status
+from django.http import HttpResponseNotAllowed, HttpResponseNotFound, Http404
+
 
 from stemblog import models
 import requests
@@ -24,12 +24,15 @@ from django.db.models import Q
 from .forms import NewsForm, NewsModelForms
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
+from django.shortcuts import get_object_or_404
 
 from django.http import JsonResponse
 from rest_framework.parsers import JSONParser
 from .serializers import NewsSerializer, NewsModelSerializer
 from rest_framework.decorators import api_view
-from rest_framework.views import Response
+from rest_framework.views import Response, APIView
+from rest_framework import status, permissions, generics
+
 
 
 def faker_create_user(request):
@@ -345,3 +348,58 @@ def news_api_up_del(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class NewsViewAPI(APIView):
+
+    def get(self, request):
+        news = models.News.objects.all()[:100]
+        ser = NewsModelSerializer(news, many=True)
+        return Response(ser.data)
+
+    def post(self, request):
+        serializer = NewsModelSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+
+        try:
+            news = models.News.objects.get(id=pk)
+        except models.News.DoesNotExist:
+            raise Http404
+
+        ser = NewsModelSerializer(news, data=request.data)
+        if ser.is_valid():
+            ser.save()
+            return Response(ser.data)
+        return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        news = get_object_or_404(models.News, pk=pk)
+        news.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class NewsListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = NewsModelSerializer
+    queryset = models.News.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        query = Q()
+
+        if self.request.GET.get('date'):
+            date = datetime.datetime.strptime(self.request.GET['date'], '%Y-%m-%d')
+            date_to = date + datetime.timedelta(days=1)
+            query = Q(date__gte=date) & Q(date__lt=date_to)
+
+        if self.request.GET.get('search'):
+            s = self.request.GET['search']
+            query &= (Q(title__contains=s) | Q(content__contains=s))
+
+        q = models.News.objects.filter(query).all().select_related()
+        return q
