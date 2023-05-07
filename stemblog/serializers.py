@@ -1,5 +1,6 @@
-from rest_framework import serializers
+from rest_framework import serializers, permissions
 from .models import News
+from django.contrib.auth.models import User
 
 
 #для явного указания полей
@@ -20,9 +21,46 @@ class NewsSerializer(serializers.Serializer):
 
 # с использованием модели
 class NewsModelSerializer(serializers.ModelSerializer):
+    """
+    Для вывода всех постов и создания новых
+    """
+
     user = serializers.ReadOnlyField(source='user.username')
 
     class Meta:
         model = News
-        fields = ('title', 'content', 'date', 'user')
-        read_only_fields = ('date', 'user')
+        fields = ('title', 'content', 'date', 'user', 'image', 'id')
+        read_only_fields = ('date',)
+
+
+class UserSerializers(serializers.ModelSerializer):
+    """Просмотр всех пользователей"""
+    phone = serializers.CharField(source='profile.phone', max_length=20, required=False)
+    country = serializers.CharField(source='profile.country', max_length=100, required=False)
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'phone', 'country')
+
+class UserCreateSerializer(serializers.ModelSerializer):
+        """Создание пользователя"""
+
+        phone = serializers.CharField(source='profile.phone', max_length=20, required=False)
+        country = serializers.CharField(source='profile.country', max_length=100, required=False)
+
+        class Meta:
+            model = User
+            fields = ('id', 'username', 'email', 'phone', 'country', 'password')
+
+
+
+                  # Permission
+####################################################
+class NewsPermission(permissions.BasePermission):
+    """
+    Разрешение на изменение только своего поста, а просмотр всех
+    """
+
+    def has_object_permission(self, request, view, news: News):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return news.user == request.user

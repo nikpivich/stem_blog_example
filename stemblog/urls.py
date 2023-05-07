@@ -34,5 +34,8 @@ urlpatterns = [
     path('api/v2/<int:pk>', views.NewsViewAPI.as_view()),
 
     path('api/v3/', views.NewsListCreateAPIView.as_view()),
-    path('api/v3/<int:pk>', views.NewsListCreateAPIView.as_view()),
+    path('api/v3/<int:news_id>', views.NewsRetrieveUpdateDestroyAPIView.as_view()),
+
+    path('api/v3/users/', views.UserListCreateAPIView.as_view()),
+    path('api/v3/users/<username>', views.UserListCreateAPIView.as_view())
 ]

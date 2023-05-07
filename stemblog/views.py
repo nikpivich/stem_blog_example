@@ -16,7 +16,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.http import HttpResponseNotAllowed, HttpResponseNotFound, Http404
 
-
+from django.contrib.auth.hashers import make_password
 from stemblog import models
 import requests
 from faker import Faker
@@ -28,7 +28,7 @@ from django.shortcuts import get_object_or_404
 
 from django.http import JsonResponse
 from rest_framework.parsers import JSONParser
-from .serializers import NewsSerializer, NewsModelSerializer
+from .serializers import NewsSerializer, NewsModelSerializer, NewsPermission, UserSerializers, UserCreateSerializer
 from rest_framework.decorators import api_view
 from rest_framework.views import Response, APIView
 from rest_framework import status, permissions, generics
@@ -403,3 +403,42 @@ class NewsListCreateAPIView(generics.ListCreateAPIView):
 
         q = models.News.objects.filter(query).all().select_related()
         return q
+
+class NewsRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.News.objects.all()
+    serializer_class = NewsModelSerializer
+    permission_classes = [NewsPermission]
+    lookup_field = 'id'
+    lookup_url_kwarg = 'news_id'
+
+    def put(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+
+class UserListCreateAPIView(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [permissions.IsAdminUser]
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return UserSerializers
+        return UserCreateSerializer
+
+    def create(self, request, *args, **kwargs):
+        profile_fields = [f.name for f in models.Profile._meta.get_fields()]
+        user_fields = [f.name for f in User._meta.get_fields()]
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        data = dict(serializer.data)
+
+        profile = models.Profile(**{k: v for k, v in data.items() if k in profile_fields})
+        data['password'] = make_password(data['password'])
+        user = User.objects.create(**{k: v for k, v in data.items() if k in user_fields})
+        profile.user = user
+        profile.save()
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
